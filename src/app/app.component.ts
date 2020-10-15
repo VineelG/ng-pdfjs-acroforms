@@ -9,7 +9,9 @@ import { Component, OnInit } from '@angular/core';
 //   title = 'ngbasicpdfforms';
 // }
 import * as pdfjsLib from 'src/assets/pdfjs-dist/build/pdf';
+import { AnnotationStorage } from "src/assets/pdfjs-dist/lib/display/annotation_storage.js";
 const PDFJSViewer = require('src/assets/pdfjs-dist/web/pdf_viewer');
+declare var $: any;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'src/assets/pdfjs-dist/build/pdf.worker.js';
 
@@ -28,7 +30,12 @@ export class AppComponent implements OnInit {
     var container = document.getElementById("pageContainer");
     var eventBus = new PDFJSViewer.EventBus();
     var loadingTask = pdfjsLib.getDocument(DEFAULT_URL);
+    const annotationStorage = new AnnotationStorage();
+    annotationStorage.getOrCreateValue("textfield1", "sample text string");
+    annotationStorage.getOrCreateValue("textfield2", "sample text string");
+    console.log(annotationStorage, 'AnnotationStorage');
     loadingTask.promise.then(function (doc) {
+      doc.saveDocument(annotationStorage);
       // Use a promise to fetch and render the next page.
       var promise = Promise.resolve();
 
@@ -46,15 +53,29 @@ export class AppComponent implements OnInit {
                 annotationLayerFactory: new PDFJSViewer.DefaultAnnotationLayerFactory(),
                 renderInteractiveForms: true,
               });
-              // Associate the actual page with the view and draw it.
-              pdfPageView.setPdfPage(pdfPage);
-              console.log(pdfPage, "page" + pageNum);
-              return pdfPageView.draw();
+
+
+              console.log(doc, "doc1");
+              doc.saveDocument(annotationStorage).then(function () {
+                console.log(doc, "doc2");
+                // Associate the actual page with the view and draw it.
+                pdfPageView.setPdfPage(pdfPage);
+                console.log(pdfPage, "page" + pageNum);
+                return pdfPageView.draw().then(function () {
+                });
+
+
+
+                // Change the text of multiple elements with a loop
+
+
+              });
             });
           }.bind(null, i)
         );
       }
     });
+
 
   } //End of ngOnInit
 }
